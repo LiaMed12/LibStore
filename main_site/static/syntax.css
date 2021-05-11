@@ -1,0 +1,40 @@
+/* Строки */
+.S {
+    color: green;
+}
+
+
+/* Спец команды*/
+.choose {
+    color: blue
+}
+
+/* Комментарии*/
+.C {
+    color: orange
+}
+
+/* Элементы*/
+.kwrd {
+    color: #8f4af3;
+}
+
+/* Заголовок библ*/
+.titleS{
+    color: #ec11b6;
+}
+
+/*[], @handle*/
+
+.gly{
+    color: #bb7334;
+}
+/* : параметры */
+.dogs {
+    color: #33b4db
+}
+
+.automates {
+    color: #22c25e
+}
+

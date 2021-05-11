@@ -1,0 +1,17 @@
+.plus_acc {
+    float: right;
+    fill: #4CAF50;
+}
+
+.plus_acc:hover {
+    fill: olive;
+}
+
+.minus {
+    float: right;
+    fill: red;
+}
+
+.minus:hover {
+    fill: orange;
+}

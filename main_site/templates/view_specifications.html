@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+{% extends "individual elements/wrapper.html" %}
+
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Specification</title>
+</head>
+
+<body>
+{% block content %}
+    <div class="container">
+        <link rel="stylesheet" href="{% static 'view_specification.css' %}">
+        <link rel="stylesheet" href="{% static 'link.css' %}">
+        {% csrf_token %}
+        <h3>{{ library.name_specification }}</h3>
+        <div><a class="specification_link">{{ library.author }} </a>
+            <b class="margin">{{ library.date }}</b>
+            <a type="submit" href="{% url 'view_graph' library.pk %}" class="btn login_button" style="float: right; margin-top: -20px;
+margin-right: 30px">Graph</a>
+        </div>
+        <br>
+        <div class="container" style="background-color:#ededed">
+            <h6>Tags:
+                {{ library.tags.all|join:", " }}
+            </h6>
+            <div class="container">
+                <h5>Description</h5>
+                {{ library.description }}
+            </div>
+            <br>
+            <link rel="stylesheet" href="{% static 'syntax.css' %}">
+            <div id="s" class="container">
+                <pre></pre>
+            </div>
+            <script>
+                function Syntax() {
+                    var code = `{{text}}`;
+                    var comments = [];	// Тут собираем все каменты
+                    var strings = [];	// Тут собираем все строки
+                    var all = {'C': comments, 'S': strings};
+                    return code
+                        // Убираем каменты
+                        .replace(/\/\*[\s\S]*\*\//g, function (m) {
+                            var l = comments.length;
+                            comments.push(m);
+                            return '~~~C' + l + '~~~';
+                        })
+                        .replace(/([^\\])\/\/[^\n]*\n/g, function (m, f) {
+                            var l = comments.length;
+                            comments.push(m);
+                            return f + '~~~C' + l + '~~~';
+                        })
+                        //Строки
+                        .replace(/(&quot;\s*\w+\s*&quot;)/g, function (m) {
+                            var l = strings.length;
+                            strings.push(m);
+                            return '~~~S' + l + '~~~';
+                        })
+                        // Выделяем ключевые слова
+                        .replace(/(types|automaton|fun|imports|converters|includes)([^a-z0-9\$_])/gi,
+                            '<span class="kwrd">$1</span>$2')
+                        //выделение library
+                        .replace(/(library\s+\w+)/g, '<span class="titleS">$1</span>')
+                        //состояния автомата
+                        .replace(/(shift|state|finishstate|action|extendable)(\s+|(;))/gi, '<span class="automates">$1</span>$2')
+                        //ветвления, переменные, создание экземпляра
+                        .replace(/(if|else|when|new|var)(\s+)/gi, '<span class="choose">$1</span>$2')
+                        // Выделяем скобки
+                        .replace(/(\,|\]|\[|\|)/gi,
+                            '<span class="gly">$1</span>')
+                        .replace(/(@\w+)/gi, '<span class="gly">$1</span>')
+                        .replace(/(:)(\s*)(\w+)/gi, '$1$2<span class="dogs">$3</span>')
+                        // Возвращаем на место каменты, строки
+                        .replace(/~~~([CS])(\d+)~~~/g, function (m, t, i) {
+                            return '<span class="' + t + '">' + all[t][i] + '</span>';
+                        })
+
+                        // Выставляем переводы строк
+                        .replace(/\n/g,
+                            '<br/>')
+                        // Табуляцию заменяем неразрывными пробелами
+                        .replace(/\t/g,
+                            '&nbsp;&nbsp;&nbsp;&nbsp;');
+                }
+
+                document.getElementById("s").innerHTML = Syntax();
+            </script>
+        </div>
+    </div>
+{% endblock %}
+</body>
+</html>

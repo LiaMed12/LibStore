@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% extends "individual elements/wrapper.html" %}
+
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Graph</title>
+</head>
+<body>
+{% block content %}
+    {% csrf_token %}
+    <div class="container"
+         style="background-color: #ffffff; width: 95vw; height:95vh; padding: 10px; border: 1px solid #3f444d;border-radius: 10px;">
+        <div id="div_template"></div>
+
+    </div>
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <input type="hidden" id="graphJ" name="variable" value="{{ textJson }}">
+    <link rel="stylesheet" href="{% static 'graph7.css' %}">
+    {% block js_block %}
+        <script type="text/javascript" src={% static 'app.js' %}></script>
+    {% endblock %}
+{% endblock %}
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+{% extends "individual elements/wrapper.html" %}
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LibStore</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+{% block content %}
+    <form method="POST" class="post-form">
+        <div class="container" style="background-color: #c0c0c0; border-radius: 20px">
+            <div class="table-responsive container" style="background-color: #ffffff; border-radius: 20px">
+                <table class="table table-condensed">
+                    <tr>
+                        <th class="titleTable"> Name</th>
+                        <th class="titleTable"> Date</th>
+                        <th class="titleTable"> Author</th>
+                        <th class="titleTable"> Version</th>
+                        <th class="titleTable"> Tags</th>
+                    </tr>
+                    <tbody>
+                    <tr>
+                        {% csrf_token %}
+                        <td><input id="id_specification" class="form-text text-muted" name="specification_name"
+                                   placeholder="Name specification"></td>
+                        <td>
+                            <input id="id_renewal_date" class="form-text text-muted" name="renewal_date" type="date">
+                            <input id="id_renewal_date2" class="form-text text-muted" name="renewal_date2" type="date">
+                        </td>
+                        <td><input id="id_author" class="form-text text-muted" name="author_name" type="text"
+                                   placeholder="Author"></td>
+                        <td><input id="id_version" class="form-text text-muted" name="version_name" type="text"
+                                   placeholder="Version"></td>
+                        <td><input id="id_tag" class="form-text text-muted" name="tag_name" type="text"
+                                   placeholder="Tag"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button type="submit" class="btn main_button " style="margin-bottom: 10px;
+box-shadow: 0 0 0px rgba(0,0,0,0);">Ok
+                </button>
+                <br>
+            </div>
+            <br>
+        </div>
+    </form>
+    <div class="container" style="background-color: white; min-height: 30vh">
+        <table class="table" id="myTable">
+            <thead class="table table-dark">
+            <tr>
+                <th id='header_table' scope="col" onclick="sortTable(0)">Name specification</th>
+                <th id='header_table' scope="col" onclick="sortTable(1)">date</th>
+                <th id='header_table' scope="col" onclick="sortTable(2)">Author</th>
+                <th id='header_table' scope="col" onclick="sortTable(3)">Version</th>
+                <th id='header_table' scope="col" onclick="sortTable(4)">Tags</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in object_list %}
+                <tr>
+                    <td>
+                        <link rel="stylesheet" href="{% static 'link.css' %}">
+                        <a class="specification_link"
+                           href="{% url 'view_specification' i.pk %}">{{ i.name_specification }}</a></td>
+                    <td>{{ i.date|date:"Y.m.d" }}</td>
+                    <td>{{ i.author }}</td>
+                    <td>{{ i.version }}</td>
+                    <td>
+                        {{ i.tags.all|join:", " }}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="grid-img-right mt-4 text-right bg bg1">
+            {% include 'pagination.html' %}
+        </div>
+    </div>
+    {% block js_block %}
+        <script type="text/javascript" src={% static 'main.js' %}></script>
+    {% endblock %}
+
+{% endblock %}
+</body>
+</html>

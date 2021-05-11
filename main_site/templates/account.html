@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+{% extends "individual elements/wrapper.html" %}
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your account</title>
+</head>
+<body>
+{% block content %}
+    <br>
+    <div class="container-fluid">
+        <div class="row justify-content-md-center">
+            <div class="col-md-auto"
+                 style="background-color: #ffffff; border-radius: 20px; border: solid darkgray; height: 30vh ">
+                <h3>About you</h3>
+                <h6>Your Login: {{ user.username }} </h6>
+                <h6>First Name:{{ user.first_name }} </h6>
+                <h6>Last Name: {{ user.last_name }} </h6>
+            </div>
+            <div class="col-1">
+            </div>
+            <div class="col-md-auto" style="background-color: white; border-radius: 20px;border: solid darkgray">
+                <br>
+                <link rel="stylesheet" href="{% static 'plus.css' %}">
+                <a class="plus_acc" href="{% url 'add_specification' %}">
+                    <svg display="none">
+                        <symbol viewBox="0 0 512 512" id="plus1">
+                            <path d="m408 184h-136c-4.417969 0-8-3.582031-8-8v-136c0-22.089844-17.910156-40-40-40s-40 17.910156-40 40v136c0 4.417969-3.582031 8-8 8h-136c-22.089844 0-40 17.910156-40 40s17.910156 40 40 40h136c4.417969 0 8 3.582031 8 8v136c0 22.089844 17.910156 40 40 40s40-17.910156 40-40v-136c0-4.417969 3.582031-8 8-8h136c22.089844 0 40-17.910156 40-40s-17.910156-40-40-40zm0 0"/>
+                        </symbol>
+                    </svg>
+                    <svg style="height: 3vw; width:6vh">
+                        <use xlink:href="#plus1"></use>
+                    </svg>
+                </a>
+                <h3>My Specification</h3>
+                <br>
+                <div class="container" style="background-color: white">
+                    <table class="table">
+                        <tr style="background-color: black; color: white; align-items: center">
+                            <th scope="col">Name specification</th>
+                            <th scope="col">date</th>
+                            <th scope="col">Version</th>
+                            <th scope="col">Tags</th>
+                            <th></th>
+                        </tr>
+                        <tbody>
+                        {% for i in list %}
+                            <tr style="text-decoration:none">
+                                <td>{{ i.name_specification }}
+                                </td>
+                                <td>{{ i.date|date:"Y.m.d" }}</td>
+                                <td>{{ i.version }}</td>
+                                <td>
+                                    {{ i.tags.all|join:", " }}
+                                </td>
+                                <td>
+                                    <a class="minus" href="{% url 'delete' i.pk %}">
+                                        <svg display="none">
+                                            <symbol viewBox="0 0 200 200" id="min">
+                                                <g>
+                                                    <path d="M112,50H12C5.4,50,0,55.4,0,62c0,6.6,5.4,12,12,12h100c6.6,0,12-5.4,12-12C124,55.4,118.6,50,112,50z"/>
+                                                </g>
+                                            </symbol>
+                                        </svg>
+                                        <svg style="height: 3vw; width:6vh">
+                                            <use xlink:href="#min"></use>
+                                        </svg>
+                                    </a>
+                            </tr>
+
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+</body>
+</html>

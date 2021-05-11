@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% extends "individual elements/wrapper.html" %}
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+</head>
+<body>
+{% block content %}
+    <br>
+    <div class="container" style="background-color: white; text-align: center !important; width: 50%">
+        <br>
+        <div class="errorlist" style="color: red">
+            {% if form.errors %}
+                <p>Your username and password didn't match. Please try again.</p>
+            {% endif %}
+
+            {% if next %}
+                {% if user.is_authenticated %}
+                    <p>Your account doesn't have access to this page. To proceed,
+                        please login with an account that has access.</p>
+                {% else %}
+                    <p>Please login to see this page.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-25">
+                    {{ form.username.label_tag }}
+                </div>
+                <div class="col-75">
+                    {{ form.username }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    {{ form.password.label_tag }}
+                </div>
+                <div class="col-75">
+                    {{ form.password }}
+                </div>
+            </div>
+            <input class="btn login_button" type="submit" value="login"/>
+        </form>
+        <p><a id='reset_pass' href="{% url 'password_reset' %}">Lost password?</a></p>
+    </div>
+{% endblock %}
+</body>
+</html>

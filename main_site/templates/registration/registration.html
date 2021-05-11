@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+    {% extends "individual elements/wrapper.html" %}
+    {% load static %}
+    <meta charset="utf-8">
+    <title>Registration</title>
+</head>
+<body>
+{% block content %}
+    <div class="container" style="background-color: white; text-align: center !important; width: 50%">
+        <h2>User registration</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-25" style="text-align: left">Username:
+                </div>
+                <div class="col-75">
+                    {{ regform.username }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25" style="text-align: left">First Name:</div>
+                <div class="col-75">
+                    {{ regform.first_name }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25" style="text-align: left">Last Name:</div>
+                <div class="col-75">
+                    {{ regform.last_name }}
+                </div>
+            </div>
+            <div class="row" >
+                <div class="col-25" style="text-align: left">
+                    Email:
+                </div>
+                <div class="col-75">
+                    {{ regform.email }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-25" style="text-align: left">
+                    Password:
+                </div>
+                <div class="col-75">
+                    {{ regform.password1 }}
+                </div>
+            </div>
+            <div style="text-align: justify">
+                {{ regform.password1.help_text }}
+            </div>
+            <div class="row">
+                <div class="col-25">
+                    Repeat Password:
+                </div>
+                <div class="col-75">
+                    {{ regform.password2 }}
+                </div>
+            </div>
+
+            <p></p>
+            <input type="submit" class="btn login_button" value="registration">
+        </form>
+    </div>
+{% endblock %}
+
+</body>
+</html>

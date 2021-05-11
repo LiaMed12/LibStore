@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Автор</title>
+</head>
+<body>
+<div>
+    {% for rubric in rubrics %}
+        <a href="/index/{{ rubric.username }}/">{{ rubric.username }}</a>
+    {% endfor %}
+</div>
+{% for bb in bbs %}
+    <div>
+    <h2>{{ bb.title }}</h2>
+    <p>{{ bb.content }}</p>
+    <p>{{ bb.published|date:"d.m.Y H:i:s" }}</p>
+    </div>
+{% endfor %}
+</body>
+</html>

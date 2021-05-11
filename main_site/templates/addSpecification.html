@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+{% extends "individual elements/wrapper.html" %}
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Specification</title>
+</head>
+<body>
+{% block content %}
+    <div class="container" style="background-color: white; text-align: center !important; width: 50%">
+        <h2>Add Specification</h2>
+        <form enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            <p style="text-align: left">
+                <input type="file" name="fileSpec">
+            </p>
+            <b style="color: darkred">{{ list }} </b>
+            <div class="row">
+                <div class="col-25" style="text-align: left">
+                    Name:
+                </div>
+                <div class="col-75">
+                    {{ addform.name_specification }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25" style="text-align: left">
+                    Tags:
+                </div>
+                <div class="col-75">
+                    {{ addform.tags }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25" style="text-align: left">
+                    Version:
+                </div>
+                <div class="col-75">
+                    {{ addform.version }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-25" style="text-align: left">
+                    Description:
+                </div>
+                <div class="col-75">
+                    <textarea name="description" cols="23" rows="5">enter a description</textarea>
+                </div>
+            </div>
+
+            <p>
+            <ul style="text-align: left">
+                <b>Rules:</b>
+                <li> No more than 3 tags</li>
+                <li>Tags have no more than 30 characters</li>
+                <li>Use only number in the "Version" field!</li>
+            </ul>
+            </p>
+
+            <input type="submit" class="btn login_button" value="Check">
+        </form>
+    </div>
+{% endblock %}
+</body>
+</html>

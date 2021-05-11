@@ -1,0 +1,47 @@
+.link {
+    fill: none;
+    stroke: #666;
+    stroke-width: 1.5px;
+    stroke-linecap: butt;
+}
+
+#licensing {
+    fill: green;
+}
+
+.link.licensing {
+    stroke: green;
+}
+
+.link.resolved {
+    stroke-dasharray: 0, 2, 1;
+}
+
+.self{
+    fill: green;
+    stroke: #333;
+    stroke-width: 1px;
+}
+
+.state{
+    fill: #d7cccc;
+    stroke: #5e5a5a;
+    stroke-width: 2px;
+}
+
+text {
+    font: 10px sans-serif;
+    pointer-events: none;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 5px;
+    font: 12px sans-serif;
+    background-color: white;
+    border: 2px solid;
+    border-radius: 5px;
+    pointer-events: none;
+}
