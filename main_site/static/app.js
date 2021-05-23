@@ -1,9 +1,10 @@
-function graph(jsonSpecification) {
+function graph(jsonSpecification, listStopAutomation)
+{
     var links = [];
     var nodes = {};
     var jsonParse = JSON.parse(jsonSpecification);
 
-    crateDataGraph(jsonParse, links);
+    createDataGraph(jsonParse, links, listStopAutomation);
 
     // Compute the distinct nodes from the links.
     links.forEach(function (link) {
@@ -11,36 +12,101 @@ function graph(jsonSpecification) {
         link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
     });
 
-    var width = +d3.select('.container').style("width").slice(0, -2);
+    var width  = +d3.select('.container').style("width").slice(0, -2);
     var height = +d3.select('.container').style("height").slice(0, -2);
 
+    var svg = d3.select("body").select(".container").select(".fieldForDraws")
+        .attr("width", width - 40)
+        .attr("height", height - 49);
+
+    cleanSVG(svg)
+    drawGraph(nodes, links, width, height, svg)
+}
+
+function createDataGraph(jsonParse, links, listStopAutomation) {
+    for (let i = 0; i < jsonParse["automata"].length; i++)
+        for (const key in jsonParse["automata"][i])
+            if (key === "shifts" && listStopAutomation.indexOf(jsonParse["automata"][i]["name"]["typeName"]) !== -1)
+                analysisShift(jsonParse["automata"][i]['' + key], jsonParse["automata"][i]["name"]["typeName"], links);
+}
+
+function analysisShift(shifts, name, links) {
+    for (let i = 0; i < shifts.length; i++)
+    {
+        let wayToNodes = shifts[i];
+        for (let i = 0; i < wayToNodes["functions"].length; i++) {
+            if (wayToNodes["to"] === "self") {
+                links.push({
+                    source: wayToNodes["from"] + ' (' + name + ')',
+                    target: wayToNodes["from"] + ' (' + name + ')',
+                    type: "licensing"
+                });
+            } else
+                links.push({
+                    source: wayToNodes["from"] + ' (' + name + ')',
+                    target: wayToNodes["to"] + ' (' + name + ')',
+                    type: "suit",
+                    function: wayToNodes["functions"][i]
+                });
+
+        }
+    }
+}
+
+function linkArc(d) {
+
+    if (d.type === "licensing") {
+        var drx = 30,
+        dry = 20,
+        xend = d.source.x - 5;
+
+        return "M " + d.source.x + "," + d.source.y + " A " + drx + "," + dry + " 360 1 1 " + xend + "," + d.source.y;
+    } else {
+        var dx = d.target.x - d.source.x,
+            dy = d.target.y - d.source.y,
+            dr = Math.sqrt(dx * dx + dy * dy);
+        return "M " + d.source.x + "," + d.source.y + " A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+    }
+}
+
+function transform(d) {
+    return "translate(" + d.x + "," + d.y + ")";
+}
+
+function parseName(name) {
+    return name.replace(/ *\([^)]*\) */g, "");
+}
+
+function setColorCircle(d) {
+    if (d.name.split(" ")[0] === "self")
+        return "self"
+    return "state"
+}
+
+function setRadiusCircle(d) {
+    if (d.name.split(" ")[0] === "self")
+        return 2
+    return 10
+}
+
+function cleanSVG(svg) {
+    svg.selectAll("g").remove();
+    svg.selectAll("defs").remove();
+
+}
+
+function drawGraph(nodes, links, width, height, svg) {
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
         .links(links)
         .size([width, height])
         .linkDistance(80)
-        .charge(-250)
-        .on("tick", tick)
-        .start();
-
-    var svg = d3.select("body").select(".container").append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-
-    var mouseleave = function (d) {
-        Tooltip
-            .style("opacity", 0)
-        d3.select(this)
-            .style("stroke", "none")
-            .style("opacity", 0.8)
-    }
-
+        .charge(-700)
+        .on("tick", tick).start();
 
     var div = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
-
 
     // Per-type markers lines
     svg.append("defs").selectAll("marker")
@@ -59,7 +125,8 @@ function graph(jsonSpecification) {
         .attr("d", "M0,-5L10,0L0,5");
 
 
-    var path = svg.append("g").selectAll("path")
+    var path = svg.append("g")
+        .selectAll("path")
         .data(force.links())
         .enter().append("path")
         .attr("class", function (d) {
@@ -104,7 +171,8 @@ function graph(jsonSpecification) {
         })
 
 
-    var text = svg.append("g").selectAll("text")
+    var text = svg.append("g")
+        .selectAll("text")
         .data(force.nodes())
         .enter().append("text")
         .attr("x", 8)
@@ -114,27 +182,21 @@ function graph(jsonSpecification) {
         });
 
     function getAutomaton(name) {
-        var k = name.replace(/\(|\)/gm, '').split(' ')
+        let k = name.replace(/\(|\)/gm, '').split(' ');
         return k[k.length - 1]
     }
 
-    function getFunction(name, links) {
-        var finalString = ''
-        console.log(links)
-        for (let i = 0; i < links.length; i++) {
-            if (links[i].type === "suit") {
-                if (name === links[i]["source"].name) {
-                    if (finalString === '') {
+    function getFunction(name, links)
+    {
+        let finalString = '';
+        for (let i = 0; i < links.length; i++)
+            if (links[i].type === "suit")
+                if (name === links[i]["source"].name)
+                {
+                    if (finalString === '')
                         finalString += "function to go to another" + "<br/>" + " state: "
-                        console.log(finalString)
-
-                    }
-                    finalString += links[i].function + ' '
-                    console.log(finalString)
-
+                    finalString += links[i].function + '; '
                 }
-            }
-        }
         return finalString
     }
 
@@ -145,69 +207,3 @@ function graph(jsonSpecification) {
         text.attr("transform", transform);
     }
 }
-
-function crateDataGraph(jsonParse, links) {
-    for (let i = 0; i < jsonParse["automata"].length; i++)
-        for (const key in jsonParse["automata"][i])
-            if (key === "shifts")
-                analysisShift(jsonParse["automata"][i]['' + key], jsonParse["automata"][i]["name"]["typeName"], links);
-}
-
-
-function analysisShift(shifts, name, links) {
-    for (let i = 0; i < shifts.length; i++) {
-        var wayToNodes = shifts[i]
-        console.log(wayToNodes);
-        for (let i = 0; i < wayToNodes["functions"].length; i++) {
-            if (wayToNodes["to"] === "self") {
-                console.log(wayToNodes["functions"][i]);
-                links.push({
-                    source: wayToNodes["from"] + ' (' + name + ')',
-                    target: wayToNodes["to"] + ' (' + name + ')' + " [" + wayToNodes["functions"][i] + "]",
-                    type: "licensing"
-                });
-                links.push({
-                    source: wayToNodes["to"] + ' (' + name + ')' + " [" + wayToNodes["functions"][i] + "]",
-                    target: wayToNodes["from"] + ' (' + name + ')',
-                    type: "licensing"
-                });
-            } else
-                links.push({
-                    source: wayToNodes["from"] + ' (' + name + ')',
-                    target: wayToNodes["to"] + ' (' + name + ')',
-                    type: "suit",
-                    function: wayToNodes["functions"][i]
-                });
-
-        }
-    }
-}
-
-function linkArc(d) {
-    var dx = d.target.x - d.source.x,
-        dy = d.target.y - d.source.y,
-        dr = Math.sqrt(dx * dx + dy * dy);
-    return "M" + d.source.x + "," + d.source.y + "A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
-}
-
-function transform(d) {
-    return "translate(" + d.x + "," + d.y + ")";
-}
-
-function parseName(name) {
-    return name.replace(/ *\([^)]*\) */g, "");
-}
-
-function setColorCircle(d) {
-    if (d.name.split(" ")[0] === "self")
-        return "self"
-    return "state"
-}
-
-function setRadiusCircle(d) {
-    if (d.name.split(" ")[0] === "self")
-        return 2
-    return 10
-}
-
-graph(document.getElementById("graphJ").value);

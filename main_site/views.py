@@ -53,7 +53,6 @@ def by_author(request, author_name):
     context = {'bbs': specif, 'author': authors}
     return render(request, 'author.html', context)
 
-
 def registration(request):
     assert isinstance(request, HttpRequest)
     if request.method == "POST":

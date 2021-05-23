@@ -22,8 +22,7 @@ def addSpecification(request):
         fs = FileSystemStorage(location="main_site/resources")
         filename = fs.save(fileSpec.name, fileSpec)
         form = addSpecifications(request.POST)
-        if form.is_valid():  # валидация полей формы
-
+        if form.is_valid():
             file = path_to_file(filename)
             f = open(file)
             error = check_spec(filename, form)
@@ -64,7 +63,7 @@ def check_spec(filename: str, form) -> str:
     if not check_version(form.getversion):
         return 'Use only numbers in the "Version" field!'
     if not check_tags(form.gettags):
-        return 'Incorrectly filled in the "Tags" field!'
+        return
     return ''
 
 

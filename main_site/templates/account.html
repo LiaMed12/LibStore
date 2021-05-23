@@ -12,7 +12,7 @@
     <div class="container-fluid">
         <div class="row justify-content-md-center">
             <div class="col-md-auto"
-                 style="background-color: #ffffff; border-radius: 20px; border: solid darkgray; height: 30vh ">
+                 style="background-color: #ffffff; border-radius: 5px; height: 30vh ">
                 <h3>About you</h3>
                 <h6>Your Login: {{ user.username }} </h6>
                 <h6>First Name:{{ user.first_name }} </h6>
@@ -20,7 +20,7 @@
             </div>
             <div class="col-1">
             </div>
-            <div class="col-md-auto" style="background-color: white; border-radius: 20px;border: solid darkgray">
+            <div class="col-md-auto" style="background-color: white; border-radius: 5px">
                 <br>
                 <link rel="stylesheet" href="{% static 'plus.css' %}">
                 <a class="plus_acc" href="{% url 'add_specification' %}">

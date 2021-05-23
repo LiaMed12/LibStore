@@ -6,13 +6,40 @@
 <head>
     <meta charset="UTF-8">
     <title>Graph</title>
+    <style>
+        label {
+            font-family: Verdana;
+        }
+    </style>
 </head>
 <body>
 {% block content %}
     {% csrf_token %}
+
     <div class="container"
-         style="background-color: #ffffff; width: 95vw; height:95vh; padding: 10px; border: 1px solid #3f444d;border-radius: 10px;">
-        <div id="div_template"></div>
+         style="background-color: #ffffff; width: 95vw; height:90vh;border-radius: 5px;">
+        <div class="container-fluid">
+            <div class="row justify-content-md">
+                <div class="col-md-auto">
+                    <h4>{{ library.name_specification }}</h4></div>
+                <div class="col-md-auto">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
+                                aria-haspopup="true" style="background-color: #4CAF50">
+                            select automat
+                        </button>
+                        <div class="dropdown-menu" style="border:2px solid #ccc; height: 25vh; overflow-y: scroll;">
+                            <div class="form-check" name="Automata">
+                            </div>
+                            <button type="button" onclick="myFunction()" class="login_button"
+                                    style="margin-left: 25vw; border:2px solid #ccc;">apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <svg class="fieldForDraws"></svg>
 
     </div>
     <script src="//d3js.org/d3.v3.min.js"></script>
@@ -20,6 +47,47 @@
     <link rel="stylesheet" href="{% static 'graph7.css' %}">
     {% block js_block %}
         <script type="text/javascript" src={% static 'app.js' %}></script>
+    {% endblock %}
+    {% block js %}
+        <script>
+            var jsonParse = JSON.parse(document.getElementById("graphJ").value);
+            function ListWithAutomata() {
+                for (let i = 0; i < jsonParse["automata"].length; i++) {
+                    var nameAutomat = jsonParse["automata"][i]["name"]["typeName"]
+                    let aTags = document.createElement('a')
+                    aTags.classList.add("dropdown-item");
+                    aTags.style = "padding: -2px; margin: -5px"
+                    var l = document.getElementsByName("Automata");
+                    l[0].append(aTags)
+                    let inputTag = document.createElement('input');
+                    inputTag.classList.add("form-check-input");
+                    inputTag.type = "checkbox"
+                    inputTag.id = nameAutomat
+                    inputTag.style = "font-size: 15px"
+                    inputTag.checked = true
+                    aTags.append(inputTag)
+                    let labelTag = document.createElement('label');
+                    labelTag.classList.add("form-check-label")
+                    labelTag.for = "flexCheckDefault"
+                    labelTag.style = "font-size: small"
+                    aTags.append(labelTag)
+                    labelTag.append(nameAutomat);
+                }
+                document.querySelector('.login_button').click()
+            }
+
+            document.getElementsByName("Automata").innerHTML = ListWithAutomata();
+
+            function myFunction() {
+                var listStopAutomat = []
+                for (let i = 0; i < jsonParse["automata"].length; i++) {
+                    var checkBox = document.getElementById(jsonParse["automata"][i]["name"]["typeName"]);
+                    if (checkBox.checked == true)
+                        listStopAutomat.push(jsonParse["automata"][i]["name"]["typeName"]);
+                }
+                graph(document.getElementById("graphJ").value, listStopAutomat)
+            }
+        </script>
     {% endblock %}
 {% endblock %}
 </body>

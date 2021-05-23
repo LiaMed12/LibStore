@@ -56,8 +56,11 @@ label {
 .container {
     border-radius: 5px;
     background-color: #ffffff;
-    padding: 20px;
+    padding: 10px;
 }
+
+
+
 
 .col-25 {
     float: left;
