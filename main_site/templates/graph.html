@@ -15,42 +15,64 @@
 <body>
 {% block content %}
     {% csrf_token %}
-
-    <div class="container"
-         style="background-color: #ffffff; width: 95vw; height:90vh;border-radius: 5px;">
-        <div class="container-fluid">
-            <div class="row justify-content-md">
-                <div class="col-md-auto">
-                    <h4>{{ library.name_specification }}</h4></div>
-                <div class="col-md-auto">
+    <div class="container">
+        <link rel="stylesheet" href="{% static 'view_specification.css' %}">
+        <link rel="stylesheet" href="{% static 'link1.css' %}">
+        {% csrf_token %}
+        <h3>{{ library.name_specification }}</h3>
+        <div><a class="specification_link">{{ library.author }} </a>
+            <b class="margin">{{ library.date }}</b>
+            <a type="submit" href="{% url 'view_specification' library.pk %}" class="btn login_button" style="float: right; margin-top: -20px;
+margin-right: 30px">Text</a>
+            <button type="button" class="btn login_button dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" style=" float: right; margin-top: -20px; margin-right: 30px">
+                select automata
+            </button>
+            <div class="dropdown-menu" style="border:2px solid #ccc; width: 25vw; height: 25vh; overflow-x: scroll;
+">
+                <div class="form-check" name="Automata">
+                </div>
+                <div class="row justify-content-md">
                     <div class="btn-group">
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"
-                                aria-haspopup="true" style="background-color: #4CAF50">
-                            select automat
+                        <button type="button" onclick="checkedAutomata()" class="check_button">apply
                         </button>
-                        <div class="dropdown-menu" style="border:2px solid #ccc; height: 25vh; overflow-y: scroll;">
-                            <div class="form-check" name="Automata">
-                            </div>
-                            <button type="button" onclick="myFunction()" class="login_button"
-                                    style="margin-left: 25vw; border:2px solid #ccc;">apply
-                            </button>
-                        </div>
+                        <button type="button" onclick="checkAll()" class="check_button">select all
+                        </button>
+                        <button type="button" onclick="notCheckAll()" class="check_button">remove all
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
-        <svg class="fieldForDraws"></svg>
-
+        <br>
+        <div class="container" style="background-color:#ededed">
+            <h6>Tags:
+                {{ library.tags.all|join:", " }}
+            </h6>
+            <div class="container">
+                <h5>Description</h5>
+                {{ library.description }}
+            </div>
+            <link rel="stylesheet" href="{% static 'syntax.css' %}">
+            <br>
+            <div class="container">
+                <svg id="text" class="fieldForDraws"></svg>
+            </div>
+        </div>
     </div>
+
     <script src="//d3js.org/d3.v3.min.js"></script>
     <input type="hidden" id="graphJ" name="variable" value="{{ textJson }}">
-    <link rel="stylesheet" href="{% static 'graph7.css' %}">
+    <link rel="stylesheet" href="{% static 'graph13.css' %}">
     {% block js_block %}
+        <script type="text/javascript" src={% static 'CONFIG.js' %}></script>
         <script type="text/javascript" src={% static 'app.js' %}></script>
     {% endblock %}
+
     {% block js %}
         <script>
             var jsonParse = JSON.parse(document.getElementById("graphJ").value);
+
             function ListWithAutomata() {
                 for (let i = 0; i < jsonParse["automata"].length; i++) {
                     var nameAutomat = jsonParse["automata"][i]["name"]["typeName"]
@@ -64,7 +86,9 @@
                     inputTag.type = "checkbox"
                     inputTag.id = nameAutomat
                     inputTag.style = "font-size: 15px"
-                    inputTag.checked = true
+                    if(jsonParse["automata"][i]["shifts"].length !== 0){
+                        inputTag.checked = true
+                    }
                     aTags.append(inputTag)
                     let labelTag = document.createElement('label');
                     labelTag.classList.add("form-check-label")
@@ -73,12 +97,12 @@
                     aTags.append(labelTag)
                     labelTag.append(nameAutomat);
                 }
-                document.querySelector('.login_button').click()
+                document.querySelector('.check_button').click()
             }
 
             document.getElementsByName("Automata").innerHTML = ListWithAutomata();
 
-            function myFunction() {
+            function checkedAutomata() {
                 var listStopAutomat = []
                 for (let i = 0; i < jsonParse["automata"].length; i++) {
                     var checkBox = document.getElementById(jsonParse["automata"][i]["name"]["typeName"]);
@@ -87,6 +111,26 @@
                 }
                 graph(document.getElementById("graphJ").value, listStopAutomat)
             }
+
+            function checkAll() {
+                var listStopAutomat = []
+                for (let i = 0; i < jsonParse["automata"].length; i++) {
+                    var checkBox = document.getElementById(jsonParse["automata"][i]["name"]["typeName"]);
+                    checkBox.checked = true;
+                    listStopAutomat.push(jsonParse["automata"][i]["name"]["typeName"]);
+                }
+                graph(document.getElementById("graphJ").value, listStopAutomat)
+            }
+
+            function notCheckAll() {
+                var listStopAutomat = []
+                for (let i = 0; i < jsonParse["automata"].length; i++) {
+                    var checkBox = document.getElementById(jsonParse["automata"][i]["name"]["typeName"]);
+                    checkBox.checked = false;
+                }
+                graph(document.getElementById("graphJ").value, listStopAutomat)
+            }
+
         </script>
     {% endblock %}
 {% endblock %}

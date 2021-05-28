@@ -5,22 +5,24 @@
     stroke-linecap: butt;
 }
 
-#licensing {
-    fill: green;
-}
-
-.link.licensing {
-    stroke: green;
+.undefined{
+    fill: none;
+    stroke: #ffffff;
+    stroke-width: 1.5px;
+    stroke-linecap: butt;
 }
 
 .link.resolved {
     stroke-dasharray: 0, 2, 1;
 }
 
-.self{
-    fill: green;
-    stroke: #333;
-    stroke-width: 1px;
+.check_button {
+    background-color: #4CAF50;
+    padding: 5px 10px;
+    border-radius: 15px;
+    color: #ffffff;
+    margin: 3px;
+    border:2px solid #ccc;
 }
 
 .state{

@@ -66,7 +66,7 @@ box-shadow: 0 0 0px rgba(0,0,0,0);">Ok
             {% for i in object_list %}
                 <tr>
                     <td>
-                        <link rel="stylesheet" href="{% static 'link.css' %}">
+                        <link rel="stylesheet" href="{% static 'link1.css' %}">
                         <a class="specification_link"
                            href="{% url 'view_specification' i.pk %}">{{ i.name_specification }}</a></td>
                     <td>{{ i.date|date:"Y.m.d" }}</td>

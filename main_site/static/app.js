@@ -1,71 +1,96 @@
-function graph(jsonSpecification, listStopAutomation)
-{
-    var links = [];
-    var nodes = {};
+var scale = 1;
+
+var width = +d3.select('.container').style("width").slice(0, -2);
+var height = +d3.select('.container').style("height").slice(0, -2) + SVG_CONTROL;
+
+var svg = d3.select("body").select(".container").select(".fieldForDraws")
+    .attr("width", width - SVG_CONTROL)
+    .attr("height", height);
+
+var links = [];
+var nodes = {};
+
+function graph(jsonSpecification, listStopAutomation) {
+    links = [];
+    nodes = {};
     var jsonParse = JSON.parse(jsonSpecification);
+    console.log(jsonParse)
+    createDataGraph(jsonParse, listStopAutomation);
 
-    createDataGraph(jsonParse, links, listStopAutomation);
-
-    // Compute the distinct nodes from the links.
     links.forEach(function (link) {
         link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
         link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
     });
 
-    var width  = +d3.select('.container').style("width").slice(0, -2);
-    var height = +d3.select('.container').style("height").slice(0, -2);
-
-    var svg = d3.select("body").select(".container").select(".fieldForDraws")
-        .attr("width", width - 40)
-        .attr("height", height - 49);
-
-    cleanSVG(svg)
-    drawGraph(nodes, links, width, height, svg)
+    cleanSVG()
+    drawGraph()
 }
 
-function createDataGraph(jsonParse, links, listStopAutomation) {
-    for (let i = 0; i < jsonParse["automata"].length; i++)
-        for (const key in jsonParse["automata"][i])
-            if (key === "shifts" && listStopAutomation.indexOf(jsonParse["automata"][i]["name"]["typeName"]) !== -1)
-                analysisShift(jsonParse["automata"][i]['' + key], jsonParse["automata"][i]["name"]["typeName"], links);
+function createDataGraph(jsonParse, listStopAutomation) {
+    for (let i = 0; i < jsonParse[AUTOMATA].length; i++) {
+        for (const key in jsonParse[AUTOMATA][i]) {
+            if (key === SHIFTS && listStopAutomation.indexOf(jsonParse[AUTOMATA][i][NAME][TYPE_NAME]) !== -1) {
+                analysisShift(jsonParse[AUTOMATA][i]['' + key], jsonParse[AUTOMATA][i][NAME][TYPE_NAME], links);
+            }
+        }
+        if (jsonParse[AUTOMATA][i][SHIFTS].length === 0 && listStopAutomation.indexOf(jsonParse[AUTOMATA][i][NAME][TYPE_NAME]) !== -1) {
+            addAloneNodes(jsonParse[AUTOMATA][i])
+        }
+    }
+}
+
+function addAloneNodes(automata) {
+    for (let i = 0; i < automata["states"].length; i++) {
+        if (automata["states"].length % 2 === 0 && i !== automata["states"].length - 1) {
+            links.push({
+                source: automata["states"][i]["name"] + ' (' + automata['name']['typeName'] + ')',
+                target: automata["states"][i + 1]["name"] + ' (' + automata['name']['typeName'] + ')',
+            })
+        }
+        links.push({
+            source: automata["states"][i]["name"] + ' (' + automata['name']['typeName'] + ')',
+            target: automata["states"][i]["name"] + ' (' + automata['name']['typeName'] + ')'
+        })
+    }
 }
 
 function analysisShift(shifts, name, links) {
-    for (let i = 0; i < shifts.length; i++)
-    {
+    for (let i = 0; i < shifts.length; i++) {
         let wayToNodes = shifts[i];
-        for (let i = 0; i < wayToNodes["functions"].length; i++) {
-            if (wayToNodes["to"] === "self") {
+        for (let i = 0; i < wayToNodes[FUNCTION].length; i++) {
+            if (wayToNodes["to"] === SELF) {
                 links.push({
                     source: wayToNodes["from"] + ' (' + name + ')',
                     target: wayToNodes["from"] + ' (' + name + ')',
-                    type: "licensing"
+                    type: "self",
+                    function: wayToNodes[FUNCTION][i]
                 });
             } else
                 links.push({
                     source: wayToNodes["from"] + ' (' + name + ')',
                     target: wayToNodes["to"] + ' (' + name + ')',
                     type: "suit",
-                    function: wayToNodes["functions"][i]
+                    function: wayToNodes[FUNCTION][i]
                 });
-
         }
     }
 }
 
 function linkArc(d) {
-
-    if (d.type === "licensing") {
-        var drx = 30,
-        dry = 20,
-        xend = d.source.x - 5;
-
+    if (d.type === "self") {
+        var drx = 40 * scale,
+            dry = 20 * scale,
+            xend = d.source.x - 5;
         return "M " + d.source.x + "," + d.source.y + " A " + drx + "," + dry + " 360 1 1 " + xend + "," + d.source.y;
-    } else {
+    } else if (d.type === "suit") {
         var dx = d.target.x - d.source.x,
             dy = d.target.y - d.source.y,
-            dr = Math.sqrt(dx * dx + dy * dy);
+            dr = Math.sqrt(dx * dx + dy * dy) * scale;
         return "M " + d.source.x + "," + d.source.y + " A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+    } else {
+        var drx = d.target.x,
+            dry = d.target.y;
+        return "M " + d.source.x + " " + d.source.y + " L " + drx + " " + dry;
     }
 }
 
@@ -78,52 +103,46 @@ function parseName(name) {
 }
 
 function setColorCircle(d) {
-    if (d.name.split(" ")[0] === "self")
-        return "self"
-    return "state"
+    return STATE
 }
 
 function setRadiusCircle(d) {
-    if (d.name.split(" ")[0] === "self")
-        return 2
-    return 10
+    return RADIUS_CIRCLE * scale
 }
 
-function cleanSVG(svg) {
+function cleanSVG() {
     svg.selectAll("g").remove();
     svg.selectAll("defs").remove();
-
 }
 
-function drawGraph(nodes, links, width, height, svg) {
+var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+function drawGraph() {
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
         .links(links)
         .size([width, height])
-        .linkDistance(80)
-        .charge(-700)
+        .linkDistance(50 * scale)
+        .charge(-500 * scale)
         .on("tick", tick).start();
-
-    var div = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0);
 
     // Per-type markers lines
     svg.append("defs").selectAll("marker")
-        .data(["suit", "licensing", "resolved"])
+        .data(["suit", "self", "resolved"])
         .enter().append("marker")
         .attr("id", function (d) {
             return d;
         })
         .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 15)
+        .attr("refX", 20)
         .attr("refY", -1.5)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
+        .attr("markerWidth", MARKER_SIZE * scale)
+        .attr("markerHeight", MARKER_SIZE * scale)
         .attr("orient", "auto")
         .append("path")
         .attr("d", "M0,-5L10,0L0,5");
-
 
     var path = svg.append("g")
         .selectAll("path")
@@ -136,6 +155,36 @@ function drawGraph(nodes, links, width, height, svg) {
             return "url(#" + d.type + ")";
         });
 
+
+    path.on("mouseover", function (d) {
+        if (d.type !== undefined) {
+            div.transition()
+                .style("opacity", 3)
+            d3.select(this)
+                .style("stroke", "blue")
+                .style("opacity", 3)
+            div.html("function: " + getFunction(d.source.name, d.target.name))
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - FRAME_CONTROL) + "px")
+        }
+    })
+        .on("mouseout", function (d) {
+            if (d.type !== undefined) {
+                div.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            }
+        })
+        .on("mouseleave", function (d) {
+            if (d.type !== undefined) {
+                div.transition()
+                    .style("opacity", 0)
+                d3.select(this)
+                    .style("stroke", "#666")
+            }
+        })
+
+
     // Per-type markers circle
     var circle = svg.append("g").selectAll("circle")
         .data(force.nodes())
@@ -147,15 +196,19 @@ function drawGraph(nodes, links, width, height, svg) {
         }).call(force.drag);
 
     circle.on("mouseover", function (d) {
-        if (d.name.split(" ")[0] !== "self") {
-            div.transition()
-                .style("opacity", 1)
-            d3.select(this)
-                .style("stroke", "red")
-                .style("opacity", 1)
-            div.html("automaton: " + getAutomaton(d.name) + "<br/>" + getFunction(d.name, links))
+        div.transition()
+            .style("opacity", 1)
+        d3.select(this)
+            .style("stroke", "red")
+            .style("opacity", 1)
+        if (NotUndefinedCircle(d.name)) {
+            div.html("automaton: " + getAutomaton(d.name) + "<br/>" + getState(d.name))
                 .style("left", (d3.event.pageX) + "px")
-                .style("top", (d3.event.pageY - 40) + "px")
+                .style("top", (d3.event.pageY - FRAME_CONTROL) + "px")
+        } else {
+            div.html("automaton: " + getAutomaton(d.name))
+                .style("left", (d3.event.pageX) + "px")
+                .style("top", (d3.event.pageY - FRAME_CONTROL) + "px")
         }
     })
         .on("mouseout", function (d) {
@@ -170,12 +223,23 @@ function drawGraph(nodes, links, width, height, svg) {
                 .style("stroke", "grey")
         })
 
+    var Automata_name = svg.append("g")
+        .selectAll("text")
+        .data(force.nodes())
+        .enter().append("text")
+        .attr("x", -40)
+        .attr("y", "-1em")
+        .style("fill", "green")
+        .style("font-size", "3vh")
+        .text(function (d) {
+            return parseNameAutomata(d.name);
+        });
 
     var text = svg.append("g")
         .selectAll("text")
         .data(force.nodes())
         .enter().append("text")
-        .attr("x", 8)
+        .attr("x", 15)
         .attr("y", ".31em")
         .text(function (d) {
             return parseName(d.name);
@@ -186,17 +250,38 @@ function drawGraph(nodes, links, width, height, svg) {
         return k[k.length - 1]
     }
 
-    function getFunction(name, links)
-    {
+    function parseNameAutomata(name) {
+        if (parseName(name) === 'Constructed')
+            return getAutomaton(name)
+    }
+
+    function NotUndefinedCircle(name) {
+        for (let i = 0; i < links.length; i++) {
+            if (links[i]["source"]["name"] === name && links[i]["type"] === undefined)
+                return false
+        }
+        return true
+    }
+
+    function getFunction(nameSource, nameTarget) {
+        let finalString = '';
+        for (let i = 0; i < links.length; i++) {
+            if (nameSource === links[i]["source"].name && nameTarget === links[i]["target"].name)
+                finalString += links[i].function + '; '
+        }
+        return finalString
+    }
+
+    function getState(name) {
+        let arrayState = [];
         let finalString = '';
         for (let i = 0; i < links.length; i++)
-            if (links[i].type === "suit")
-                if (name === links[i]["source"].name)
-                {
-                    if (finalString === '')
-                        finalString += "function to go to another" + "<br/>" + " state: "
-                    finalString += links[i].function + '; '
-                }
+            if (name === links[i]["source"].name && arrayState.indexOf(links[i].target.name) === -1) {
+                if (finalString === '')
+                    finalString += "next state: "
+                finalString += parseName(links[i].target.name) + '; '
+                arrayState.push(links[i].target.name)
+            }
         return finalString
     }
 
@@ -205,5 +290,39 @@ function drawGraph(nodes, links, width, height, svg) {
         path.attr("d", linkArc);
         circle.attr("transform", transform);
         text.attr("transform", transform);
+        Automata_name.attr("transform", transform)
     }
 }
+
+function addOnWheel(elem, handler) {
+    if (elem.addEventListener) {
+        if ('onwheel' in document) {
+            // IE9+, FF17+
+            elem.addEventListener("wheel", handler);
+        } else if ('onmousewheel' in document) {
+            // устаревший вариант события
+            elem.addEventListener("mousewheel", handler);
+        } else {
+            // 3.5 <= Firefox < 17, более старое событие DOMMouseScroll пропустим
+            elem.addEventListener("MozMousePixelScroll", handler);
+        }
+    } else {
+        text.attachEvent("onmousewheel", handler);
+    }
+}
+
+
+addOnWheel(text, function (e) {
+
+    var delta = e.deltaY || e.detail || e.wheelDelta;
+
+    // отмасштабируем при помощи CSS
+    if (delta > 0) scale += 0.05;
+    else scale -= 0.05;
+
+    cleanSVG(svg)
+    drawGraph(width, height, svg)
+
+    // отменим прокрутку
+    e.preventDefault();
+});
