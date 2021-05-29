@@ -9,6 +9,8 @@ var svg = d3.select("body").select(".container").select(".fieldForDraws")
 
 var links = [];
 var nodes = {};
+var automat = []
+
 
 function graph(jsonSpecification, listStopAutomation) {
     links = [];
@@ -16,12 +18,12 @@ function graph(jsonSpecification, listStopAutomation) {
     var jsonParse = JSON.parse(jsonSpecification);
     console.log(jsonParse)
     createDataGraph(jsonParse, listStopAutomation);
+    createLinkAutomation(jsonParse, listStopAutomation)
 
     links.forEach(function (link) {
         link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
         link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
     });
-
     cleanSVG()
     drawGraph()
 }
@@ -37,6 +39,33 @@ function createDataGraph(jsonParse, listStopAutomation) {
             addAloneNodes(jsonParse[AUTOMATA][i])
         }
     }
+}
+
+
+function createLinkAutomation(jsonParse, listStopAutomation) {
+    var fun = jsonParse["functions"];
+    for (let i = 0; i < fun.length; i++) {
+        if (checkForParametric(fun[i], listStopAutomation)) {
+            var endAutomaton = fun[i]["returnValue"]["type"]["typeName"]
+            var startAutomaton = fun[i]["entity"]["type"]["typeName"]
+            var func = fun[i]["codeName"]
+            if (automat.indexOf(endAutomaton) !== -1 && automat.indexOf(startAutomaton) !== -1) {
+                analysisAutomaton(endAutomaton, startAutomaton, func)
+
+            }
+        }
+    }
+}
+
+function checkForParametric(fun_current) {
+    if (fun_current["returnValue"] !== undefined && fun_current["entity"] !== undefined) {
+        var start = fun_current["returnValue"]["type"]["typeName"];
+        var end = fun_current["entity"]["type"]["typeName"];
+        if (start !== end && automat.indexOf(start) !== -1 && automat.indexOf(end) !== -1) {
+            return true
+        }
+    } else
+        return false
 }
 
 function addAloneNodes(automata) {
@@ -63,30 +92,59 @@ function analysisShift(shifts, name, links) {
                     source: wayToNodes["from"] + ' (' + name + ')',
                     target: wayToNodes["from"] + ' (' + name + ')',
                     type: "self",
-                    function: wayToNodes[FUNCTION][i]
+                    function: wayToNodes[FUNCTION][i],
+                    automaton: name
                 });
             } else
                 links.push({
                     source: wayToNodes["from"] + ' (' + name + ')',
                     target: wayToNodes["to"] + ' (' + name + ')',
                     type: "suit",
-                    function: wayToNodes[FUNCTION][i]
+                    function: wayToNodes[FUNCTION][i],
+                    automaton: name
                 });
+            if (automat.indexOf(name) === -1)
+                automat.push(name)
         }
     }
+}
+
+function analysisAutomaton(end, start, func) {
+    var source
+    var target
+    for (let i = 0; i < links.length && (target === undefined || source === undefined); i++) {
+        if (links[i].automaton === start) {
+            source = links[i]['source']
+        } else if (links[i].automaton === end) {
+            target = links[i]['target']
+        }
+    }
+    links.push({
+            source: source,
+            target: target,
+            function: func,
+            type: "resolved",
+        }
+    )
 }
 
 function linkArc(d) {
     if (d.type === "self") {
         var drx = 40 * scale,
             dry = 20 * scale,
-            xend = d.source.x - 5;
+            xend = d.source.x - 1;
         return "M " + d.source.x + "," + d.source.y + " A " + drx + "," + dry + " 360 1 1 " + xend + "," + d.source.y;
     } else if (d.type === "suit") {
         var dx = d.target.x - d.source.x,
             dy = d.target.y - d.source.y,
             dr = Math.sqrt(dx * dx + dy * dy) * scale;
         return "M " + d.source.x + "," + d.source.y + " A" + dr + "," + dr + " 0 0,1 " + d.target.x + "," + d.target.y;
+    } else if (d.type === "resolved") {
+        var x = d.source.x,
+            y = d.source.y + 40 * scale,
+            drx = d.target.x,
+            dry = d.target.y;
+        return "M " + x + " " + y + " L " + drx + " " + dry;
     } else {
         var drx = d.target.x,
             dry = d.target.y;
@@ -103,6 +161,8 @@ function parseName(name) {
 }
 
 function setColorCircle(d) {
+    if (parseName(d.name) === "Closed")
+        return "Closed"
     return STATE
 }
 
@@ -120,13 +180,27 @@ var div = d3.select("body").append("div")
     .style("opacity", 0);
 
 function drawGraph() {
+    var automat = []
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
         .links(links)
         .size([width, height])
-        .linkDistance(50 * scale)
-        .charge(-500 * scale)
-        .on("tick", tick).start();
+        .linkStrength(0.1)
+        .friction(0.9)
+
+        .linkDistance(function (d) {
+            switch (d.type) {
+                case "suit":
+                    return 60 * scale;
+                case SELF:
+                    return 50 * scale;
+                case "resolved":
+                    return 120 * scale;
+                default:
+                    return 30 * scale;
+            }
+        })
+        .charge(-600 * scale).on("tick", tick).start();
 
     // Per-type markers lines
     svg.append("defs").selectAll("marker")
@@ -145,6 +219,17 @@ function drawGraph() {
         .attr("d", "M0,-5L10,0L0,5");
 
     var path = svg.append("g")
+        .selectAll("path")
+        .data(force.links())
+        .enter().append("path")
+        .attr("class", function (d) {
+            return "link " + d.type;
+        })
+        .attr("marker-end", function (d) {
+            return "url(#" + d.type + ")";
+        });
+
+    var transitionAutomatonPath = svg.append("g")
         .selectAll("path")
         .data(force.links())
         .enter().append("path")
@@ -232,7 +317,7 @@ function drawGraph() {
         .style("fill", "green")
         .style("font-size", "3vh")
         .text(function (d) {
-            return parseNameAutomata(d.name);
+            return parseNameAutomata(d);
         });
 
     var text = svg.append("g")
@@ -250,9 +335,16 @@ function drawGraph() {
         return k[k.length - 1]
     }
 
-    function parseNameAutomata(name) {
-        if (parseName(name) === 'Constructed')
-            return getAutomaton(name)
+    function parseNameAutomata(d) {
+        var nameState = parseName(d.name),
+            nameAutomata = getAutomaton(d.name)
+        if (nameState === 'Constructed' && automat.indexOf(nameAutomata) === -1) {
+            automat.push(nameAutomata)
+            return nameAutomata
+        } else if (automat.indexOf(nameAutomata) === -1) {
+            automat.push(nameAutomata)
+            return nameAutomata
+        }
     }
 
     function NotUndefinedCircle(name) {
@@ -317,8 +409,8 @@ addOnWheel(text, function (e) {
     var delta = e.deltaY || e.detail || e.wheelDelta;
 
     // отмасштабируем при помощи CSS
-    if (delta > 0) scale += 0.05;
-    else scale -= 0.05;
+    if (delta > 0 && scale < 2) scale += 0.05;
+    else if (scale > 0.4) scale -= 0.05;
 
     cleanSVG(svg)
     drawGraph(width, height, svg)
