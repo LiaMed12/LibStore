@@ -43,6 +43,12 @@ class SpecifForm(forms.Form):
         data = self.version_data['version_name']
         return data
 
+class SortForm(forms.Form):
+    id_zero = forms.IntegerField(required=False)
+
+    def get_zero(self):
+        return self.cleaned_data['id_zero']
+
 
 class RegisterForm(UserCreationForm):
     email = forms.EmailField(label="Email")

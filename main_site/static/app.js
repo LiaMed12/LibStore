@@ -17,6 +17,7 @@ function graph(jsonSpecification, listStopAutomation) {
     nodes = {};
     var jsonParse = JSON.parse(jsonSpecification);
     console.log(jsonParse)
+    console.log(listStopAutomation)
     createDataGraph(jsonParse, listStopAutomation);
     createLinkAutomation(jsonParse, listStopAutomation)
 
@@ -43,6 +44,7 @@ function createDataGraph(jsonParse, listStopAutomation) {
 
 
 function createLinkAutomation(jsonParse, listStopAutomation) {
+    console.log(listStopAutomation)
     var fun = jsonParse["functions"];
     for (let i = 0; i < fun.length; i++) {
         if (checkForParametric(fun[i], listStopAutomation)) {
@@ -51,17 +53,20 @@ function createLinkAutomation(jsonParse, listStopAutomation) {
             var func = fun[i]["codeName"]
             if (automat.indexOf(endAutomaton) !== -1 && automat.indexOf(startAutomaton) !== -1) {
                 analysisAutomaton(endAutomaton, startAutomaton, func)
-
             }
         }
     }
 }
 
-function checkForParametric(fun_current) {
+function checkForParametric(fun_current, listStopAutomation) {
+    console.log(fun_current)
     if (fun_current["returnValue"] !== undefined && fun_current["entity"] !== undefined) {
         var start = fun_current["returnValue"]["type"]["typeName"];
         var end = fun_current["entity"]["type"]["typeName"];
-        if (start !== end && automat.indexOf(start) !== -1 && automat.indexOf(end) !== -1) {
+        console.log(listStopAutomation.indexOf(start))
+        console.log(listStopAutomation.indexOf(end))
+        if (start !== end && automat.indexOf(start) !== -1 && automat.indexOf(end) !== -1
+        && listStopAutomation.indexOf(start)!==-1 && listStopAutomation.indexOf(end)!==-1 ) {
             return true
         }
     } else
@@ -110,6 +115,7 @@ function analysisShift(shifts, name, links) {
 }
 
 function analysisAutomaton(end, start, func) {
+    console.log(end, start)
     var source
     var target
     for (let i = 0; i < links.length && (target === undefined || source === undefined); i++) {
@@ -181,6 +187,8 @@ var div = d3.select("body").append("div")
 
 function drawGraph() {
     var automat = []
+    console.log(automat)
+
     var force = d3.layout.force()
         .nodes(d3.values(nodes))
         .links(links)

@@ -1,6 +1,6 @@
 .pagination {
-    width: auto;
-    margin: 0 auto
+    background-color: #4CAF50;
+    color: white;
 }
 
 .pagination,

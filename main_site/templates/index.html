@@ -11,55 +11,63 @@
             integrity="sha384-b5kHyXgcpbZJO/tY9Ul7kGkf1S0CWuKcCD38l8YkeH8z8QjE0GmW1gYU5S9FOnJ0"
             crossorigin="anonymous"></script>
 
+
 </head>
 <body>
 {% block content %}
-    <form method="POST" class="post-form">
-        <div class="container" style="background-color: #c0c0c0; border-radius: 20px">
-            <div class="table-responsive container" style="background-color: #ffffff; border-radius: 20px">
-                <table class="table table-condensed">
-                    <tr>
-                        <th class="titleTable"> Name</th>
-                        <th class="titleTable"> Date</th>
-                        <th class="titleTable"> Author</th>
-                        <th class="titleTable"> Version</th>
-                        <th class="titleTable"> Tags</th>
-                    </tr>
-                    <tbody>
-                    <tr>
-                        {% csrf_token %}
-                        <td><input id="id_specification" class="form-text text-muted" name="specification_name"
-                                   placeholder="Name specification"></td>
-                        <td>
-                            <input id="id_renewal_date" class="form-text text-muted" name="renewal_date" type="date">
-                            <input id="id_renewal_date2" class="form-text text-muted" name="renewal_date2" type="date">
-                        </td>
-                        <td><input id="id_author" class="form-text text-muted" name="author_name" type="text"
-                                   placeholder="Author"></td>
-                        <td><input id="id_version" class="form-text text-muted" name="version_name" type="text"
-                                   placeholder="Version"></td>
-                        <td><input id="id_tag" class="form-text text-muted" name="tag_name" type="text"
-                                   placeholder="Tag"></td>
-                    </tr>
-                    </tbody>
-                </table>
-                <button type="submit" class="btn main_button " style="margin-bottom: 10px;
+
+<form method="POST" class="post-form">
+    <div class="container" style="background-color: #c0c0c0; border-radius: 20px">
+        <div class="table-responsive container" style="background-color: #ffffff; border-radius: 20px">
+            <table class="table table-condensed">
+                <tr>
+                    <th class="titleTable"> Name</th>
+                    <th class="titleTable"> Date</th>
+                    <th class="titleTable"> Author</th>
+                    <th class="titleTable"> Version</th>
+                    <th class="titleTable"> Tags</th>
+                </tr>
+                <tbody>
+                <tr>
+                    {% csrf_token %}
+                    <td><input id="id_specification" class="form-text text-muted" name="specification_name"
+                               placeholder="Name specification"></td>
+                    <td>
+                        <input id="id_renewal_date" class="form-text text-muted" name="renewal_date" type="date">
+                        <input id="id_renewal_date2" class="form-text text-muted" name="renewal_date2" type="date">
+                    </td>
+                    <td><input id="id_author" class="form-text text-muted" name="author_name" type="text"
+                               placeholder="Author"></td>
+                    <td><input id="id_version" class="form-text text-muted" name="version_name" type="text"
+                               placeholder="Version"></td>
+                    <td><input id="id_tag" class="form-text text-muted" name="tag_name" type="text"
+                               placeholder="Tag"></td>
+                </tr>
+                </tbody>
+            </table>
+            <button type="submit" class="btn main_button " style="margin-bottom: 10px;
 box-shadow: 0 0 0px rgba(0,0,0,0);">Ok
-                </button>
-                <br>
-            </div>
+            </button>
             <br>
         </div>
-    </form>
-    <div class="container" style="background-color: white; min-height: 30vh">
+        <br>
+    </div>
+</form>
+<input type="hidden" id="Sort" name="variable" value="{{ textJson }}">
+
+<div class="container" style="background-color: white; min-height: 30vh">
+    <form method="POST" class="post" name="Sort">
+
         <table class="table" id="myTable">
             <thead class="table table-dark">
             <tr>
-                <th id='header_table' scope="col" onclick="sortTable(0)">Name specification</th>
-                <th id='header_table' scope="col" onclick="sortTable(1)">date</th>
-                <th id='header_table' scope="col" onclick="sortTable(2)">Author</th>
-                <th id='header_table' scope="col" onclick="sortTable(3)">Version</th>
-                <th id='header_table' scope="col" onclick="sortTable(4)">Tags</th>
+                {% csrf_token %}
+                <th id='header_table' scope="col" onclick="CALL(0)">Name specification</button>
+                </th>
+                <th id='header_table' scope="col" onclick="CALL(1)">date</th>
+                <th id='header_table' scope="col" onclick="CALL(2)">Author</th>
+                <th id='header_table' scope="col" onclick="CALL(3)">Version</th>
+                <th id='header_table' scope="col" onclick="CALL(4)">Tags</th>
             </tr>
             </thead>
             <tbody>
@@ -79,14 +87,57 @@ box-shadow: 0 0 0px rgba(0,0,0,0);">Ok
             {% endfor %}
             </tbody>
         </table>
-        <div class="grid-img-right mt-4 text-right bg bg1">
-            {% include 'pagination.html' %}
-        </div>
-    </div>
+    </form>
+    <link rel="stylesheet" href="{% static 'paginationn.css' %}">
+    {% if object_list.has_previous %}
+        <a class="btn btn-outline-info" href="?page=1">«</a>
+        {% if object_list.number > 3 %}
+            <a class="btn btn-outline-info " href="?page=1">1
+                {% if object_list.number > 4 %}
+                    ...
+                {% endif %}</a>
+        {% endif %}
+    {% endif %}
+
+    {% for num in object_list.paginator.page_range %}
+        {% if object_list.number == num %}
+            <a class="btn btn-info " href="?page={{ num }}">{{ num }}</a>
+        {% elif num > object_list.number|add:'-3' and num < object_list.number|add:'3' %}
+            <a class="btn btn-outline-info " href="?page={{ num }}">{{ num }}
+        {% endif %}
+    {% endfor %}
+
+    {% if object_list.has_next %}
+        {% if object_list.number < object_list.paginator.num_pages|add:'-3' %}
+            ...</a>
+            <a class="btn btn-outline-info" href="?page={{ object_list.paginator.num_pages }}">
+                {{ object_list.paginator.num_pages }}</a>
+        {% elif object_list.number < object_list.paginator.num_pages|add:'-2' %}
+            <a class="btn btn-outline-info " href="?page={{ object_list.paginator.num_pages }}">
+                {{ object_list.paginator.num_pages }}</a>
+        {% endif %}
+        <a class="btn btn-outline-info" href="?page={{ object_list.paginator.num_pages  }}">»</a>
+    {% endif %}
+
+
     {% block js_block %}
         <script type="text/javascript" src={% static 'main.js' %}></script>
     {% endblock %}
-
+</div>
+<script>
+    function CALL(n) {
+        let inputTags = document.createElement('button')
+        var l = document.getElementsByName("Sort");
+        inputTags.classList.add("zero");
+        inputTags.value = n;
+        inputTags.id = "id_zero"
+        inputTags.name = "id_zero"
+        inputTags.type = "submit";
+        inputTags.style = "background: transparent; border: none !important; font-size:0;"
+        l[0].append(inputTags)
+        inputTags.click();
+    }
+</script>
 {% endblock %}
 </body>
 </html>
