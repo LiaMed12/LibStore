@@ -1,2 +1,0 @@
-class SortColums:
-    MOOD = None

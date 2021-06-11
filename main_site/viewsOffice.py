@@ -63,7 +63,7 @@ def check_spec(filename: str, form) -> str:
     if not check_version(form.getversion):
         return 'Use only numbers in the "Version" field!'
     if not check_tags(form.gettags):
-        return
+        return 'Add no more 3 tags and no more than 30 characters'
     return ''
 
 
@@ -79,7 +79,9 @@ def check_version(ver: str):
 
 
 def check_tags(tags: list):
+    print(len(tags))
     for tag in tags:
+        print(len(tag))
         if len(tag) >= 30:
             return False
     return len(tags) <= 3

@@ -17,7 +17,7 @@
     {% csrf_token %}
     <div class="container">
         <link rel="stylesheet" href="{% static 'view_specification.css' %}">
-        <link rel="stylesheet" href="{% static 'link1.css' %}">
+        <link rel="stylesheet" href="{% static 'links.css' %}">
         {% csrf_token %}
         <h3>{{ library.name_specification }}</h3>
         <div><a class="specification_link">{{ library.author }} </a>
@@ -63,9 +63,9 @@ margin-right: 30px">Text</a>
 
     <script src="//d3js.org/d3.v3.min.js"></script>
     <input type="hidden" id="graphJ" name="variable" value="{{ textJson }}">
-    <link rel="stylesheet" href="{% static 'graph16.css' %}">
+    <link rel="stylesheet" href="{% static 'graph_views.css' %}">
     {% block js_block %}
-        <script type="text/javascript" src={% static 'CONFIG.js' %}></script>
+        <script type="text/javascript" src={% static 'CONST.js' %}></script>
         <script type="text/javascript" src={% static 'app.js' %}></script>
 
 

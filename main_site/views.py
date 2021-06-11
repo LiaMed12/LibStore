@@ -15,11 +15,11 @@ from django.http import HttpRequest, HttpResponseRedirect
 from django.contrib.auth.models import User
 
 from django.shortcuts import render
-from .CONSTANT import SortColums
 from .forms import SpecifForm, RegisterForm, SortForm
 
-request_sort = None
-tags = ['Python','C++', 'C#', 'C', 'Java', 'JS', 'JavaScript', 'Kotlin', 'example', 'Machine', 'Ruby', 'network']
+buffer = None
+SortColums = "asc"
+tags = ['Python', 'C++', 'C#', 'C', 'Java', 'JS', 'JavaScript', 'Kotlin', 'example', 'Machine', 'Ruby', 'network']
 
 def path_to_file(filename):
     pathFile = os.path.join(os.path.abspath(os.path.dirname(__file__)))
@@ -53,68 +53,55 @@ def addSpecific(size):
 
 
 class BaseView(ListView):
+    global buffer
     model = specifications
-    SortColums.MOOD = "asc"
     template_name = "index.html"
-    #addSpecific(500)
+    sizePaginator = 20
     queryset = specifications.objects.all().order_by('-date')
+    if buffer is None:
+        buffer = queryset
 
     def post(self, request, *args, **kwargs):
+        global buffer
         sort_filter = SortForm(request.POST)
         form_filter = SpecifForm(request.POST)
-        if form_filter.is_valid() and checkData(form_filter):
-            start = time.perf_counter()
-            spec = filter_spec(self.queryset, form_filter)
-            print("Filter - ", 1000 * (time.perf_counter() - start))
-            paginator = Paginator(spec, 20)
-            page_number = request.GET.get('page')
-            page_obj = paginator.get_page(page_number)
-            return render(request, 'index.html', {'object_list': page_obj})
-        if sort_filter.is_valid():
-            global request_sort
-            start = time.perf_counter()
-            defineSortingType(sort_filter.cleaned_data["id_zero"])
-            print("Sort - ", 1000 * (time.perf_counter() - start))
-            paginator = Paginator(request_sort, 20)  # Show 25 contacts per page.
-            page_number = request.GET.get('page')
-            page_obj = paginator.get_page(page_number)
-            return render(request, 'index.html', {'object_list': page_obj})
+        isSortValid = sort_filter.is_valid()
+        if form_filter.is_valid() and sort_filter.cleaned_data["id_zero"] is None:
+            buffer = filter_spec(self.queryset, form_filter)
+
+        elif isSortValid and sort_filter.cleaned_data["id_zero"] is not None:
+            self.defineSortingType(sort_filter.cleaned_data["id_zero"])
+
+        paginator = Paginator(buffer, self.sizePaginator)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        return render(request, 'index.html', {'object_list': page_obj})
 
     def get(self, request, **kwargs):
+        global buffer
+        if len(request.GET) == 0:
+            buffer = self.queryset
         page = request.GET.get('page', 1)
-
-        if request_sort is None:
-            paginator = Paginator(self.queryset, 20)
-        else:
-            paginator = Paginator(request_sort, 20)
+        paginator = Paginator(buffer, self.sizePaginator)
         try:
             users = paginator.page(page)
         except PageNotAnInteger:
             users = paginator.page(1)
         except EmptyPage:
             users = paginator.page(paginator.num_pages)
-
         return render(request, 'index.html', {'object_list': users})
 
-
-def checkData(form_filter):
-    if (form_filter.cleaned_data['specification_name'] or form_filter.cleaned_data['author_name'] or
-            form_filter.cleaned_data['renewal_date'] or form_filter.cleaned_data['renewal_date2']
-            or form_filter.cleaned_data['version_name'] or
-            form_filter.cleaned_data['tag_name']):
-        return True
-
-
-def defineSortingType(column: int):
-    global request_sort
-    tables = {0: 'name_specification', 1: 'date', 2: 'author', 3: 'version', 4: 'tags'}
-    if SortColums.MOOD == 'asc':
-        request_sort = specifications.objects.all().order_by(tables[column])
-        SortColums.MOOD = 'desc'
-    else:
-        request_sort = specifications.objects.all().order_by("-" + tables[column])
-        SortColums.MOOD = 'asc'
-
+    @staticmethod
+    def defineSortingType(column: int):
+        global buffer
+        global SortColums
+        tables = {0: 'name_specification', 1: 'date', 2: 'author', 3: 'version', 4: 'tags'}
+        if SortColums == 'asc':
+            buffer = buffer.order_by(tables[column])
+            SortColums = 'desc'
+        else:
+            buffer = buffer.order_by("-" + tables[column])
+            SortColums = 'asc'
 
 def filter_spec(spec, form_filter):
     if form_filter.cleaned_data['specification_name']:
